@@ -1,0 +1,44 @@
+### Получить список пользователей
+GET http://localhost:8080/api/users
+
+### Создать запись (employee)
+POST http://localhost:8080/api/attendance-records
+X-User-Id: 2
+Content-Type: application/json
+
+{
+  "type": "late",
+  "date": "2026-03-20",
+  "reason": "Пробки на дороге"
+}
+
+### Получить свои записи (employee)
+GET http://localhost:8080/api/attendance-records/my
+X-User-Id: 2
+
+### Обновить запись (employee, только pending)
+PUT http://localhost:8080/api/attendance-records/1
+X-User-Id: 2
+Content-Type: application/json
+
+{
+  "type": "absence",
+  "date": "2026-03-19",
+  "reason": "Болезнь"
+}
+
+### Удалить запись (employee, только pending)
+DELETE http://localhost:8080/api/attendance-records/1
+X-User-Id: 2
+
+### Получить все записи с фильтрами (admin)
+GET http://localhost:8080/api/attendance-records?user_id=2&type=late&status=pending&from=2026-03-01&to=2026-03-31
+X-User-Id: 1
+
+### Подтвердить запись (admin)
+POST http://localhost:8080/api/attendance-records/1/approve
+X-User-Id: 1
+
+### Отклонить запись (admin)
+POST http://localhost:8080/api/attendance-records/1/reject
+X-User-Id: 1

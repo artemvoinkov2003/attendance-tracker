@@ -1,0 +1,374 @@
+:root {
+    --primary: #0d2d83;
+    --primary-hover: #1E40AF;
+    --primary-light: #3b82f6;
+    --primary-dark: #8b5cf6; 
+    --success: #10B981;
+    --danger: #EF4444;
+    --warning: #ecc377;
+    --info: #06B6D4;
+    --background: #F8FAFC;
+    --surface: #FFFFFF;
+    --text-primary: #1F2937;
+    --text-secondary: #6B7280;
+    --border: #E5E7EB;
+    --accent: #06B6D4;
+}
+
+body {
+    font-family: 'Nunito Sans', sans-serif;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+main {
+    flex: 1 0 auto;
+}
+
+footer {
+    flex-shrink: 0;
+}
+
+/* Тени и эффекты */
+.shadow-custom {
+    box-shadow: 0 2vh 4vh -2vh rgba(0, 0, 0, 0.4), 0 1vh 2vh -1vh rgba(0, 0, 0, 0.2);
+}
+
+.hover-lift {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.hover-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 20px 30px -10px rgba(30, 58, 138, 0.2);
+}
+
+/* Усиленная тень с эффектом следования */
+.hover-shadow-xl {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.hover-shadow-xl:hover {
+    transform: scale(1.02);
+    box-shadow: 0 4vh 6vh -2vh rgba(0, 0, 0, 0.5);
+}
+
+/* Градиентная кнопка с бликом */
+.btn-gradient {
+    background: linear-gradient(135deg, var(--primary-hover), var(--primary-light));
+    color: white;
+    padding: 0.75rem 1.5rem;
+    font-size: 1.125rem;
+    border-radius: 0.5rem;
+    position: relative;
+    overflow: hidden;
+    transition: background 0.3s ease;
+    border: none;
+    cursor: pointer;
+    display: inline-block;
+    text-align: center;
+}
+.btn-gradient:hover {
+    background: var(--primary);
+}
+.btn-gradient::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+    transition: left 0.5s ease;
+}
+.btn-gradient:hover::after {
+    left: 100%;
+}
+
+/* Кнопки пользователей на странице входа */
+.user-btn {
+    background-color: var(--success);
+    color: white;
+    padding: 0.75rem 1rem;
+    font-size: 1.1rem;
+    border-radius: 0.5rem;
+    transition: all 0.3s ease;
+    width: 100%;
+    text-align: left;
+    border: none;
+    cursor: pointer;
+    margin-bottom: 0.5rem;
+}
+.user-btn:hover {
+    background-color: var(--warning); 
+    transform: scale(1.02);
+    box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.2);
+}
+
+/* Карточки секций */
+.section-card {
+    padding: 2rem;
+    border-radius: 1rem;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.section-card:hover {
+    transform: scale(1.02);
+    box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.3);
+}
+
+/* Цвета фона для секций */
+.bg-accent-light { background-color: var(--accent); }
+.bg-warning-light { background-color: var(--warning); }
+.bg-success-light { background-color: var(--success); }
+.bg-primary-dark { background-color: var(--primary-dark); }
+.bg-accent { background-color: var(--accent); }
+.bg-primary { background-color: var(--primary); }
+.bg-danger { background-color: var(--danger); }
+.bg-primary-hover { background-color: var(--primary-hover); }
+
+/* Шапка */
+.header-dark {
+    background-color: var(--primary-hover);
+    color: white;
+}
+.header-dark a, .header-dark span {
+    color: white;
+}
+.header-dark a:hover {
+    color: var(--accent);
+}
+
+/* Подвал */
+.footer-dark {
+    background-color: var(--primary-hover);
+    color: white;
+}
+.footer-dark a {
+    color: white;
+    text-decoration: none;
+}
+.footer-dark a:hover {
+    text-decoration: underline;
+}
+
+/* Увеличенный текст */
+.text-large {
+    font-size: 1.2rem;
+}
+.text-xlarge {
+    font-size: 1.5rem;
+}
+
+/* Кнопка альтернативного градиента (новая запись, отмена) */
+.btn-gradient-alt {
+    background: linear-gradient(135deg, var(--accent), var(--success));
+    color: white;
+    padding: 0.75rem 1.5rem;
+    font-size: 1.125rem;
+    border-radius: 0.5rem;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+    display: inline-block;
+    text-align: center;
+    text-decoration: none;
+}
+.btn-gradient-alt:hover {
+    background: linear-gradient(135deg, var(--danger), var(--warning));
+    transform: scale(1.05);
+    box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.2);
+}
+.btn-gradient-alt::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+    transition: left 0.5s ease;
+}
+.btn-gradient-alt:hover::after {
+    left: 100%;
+}
+
+/* Карточка записи */
+.record-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.record-card:hover {
+    transform: scale(1.02);
+    box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.3);
+}
+
+/* Цвета */
+.bg-primary-light { background-color: var(--primary-light); }
+.text-danger { color: var(--danger); }
+.hover\:text-danger\/80:hover { color: rgba(239, 68, 68, 0.8); }
+
+/* Градиентный фон для карточек */
+.record-card {
+    background: linear-gradient(135deg, var(--surface) 0%, #f8faff 100%);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Цветная верхняя полоса в зависимости от типа */
+.record-card[data-type="late"]::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: linear-gradient(90deg, var(--warning), var(--danger));
+}
+.record-card[data-type="absence"]::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: linear-gradient(90deg, var(--primary-light), var(--primary));
+}
+
+/* Усиленная тень при наведении */
+.record-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.25), 0 8px 15px -5px rgba(0, 0, 0, 0.1);
+}
+
+/* Иконки для типа записи */
+.type-icon {
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+    margin-right: 8px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    vertical-align: middle;
+}
+.type-icon.late {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%23F59E0B' viewBox='0 0 24 24'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z'/%3E%3C/svg%3E");
+}
+.type-icon.absence {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%233B82F6' viewBox='0 0 24 24'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2V7zm0 8h2v2h-2v-2z'/%3E%3C/svg%3E");
+}
+
+/* Улучшенные карточки записей */
+.record-card {
+    background: linear-gradient(145deg, #ffffff, #fafcff);
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    position: relative;
+}
+
+.record-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 30px 40px -15px rgba(0, 0, 0, 0.25), 0 10px 20px -5px rgba(0, 0, 0, 0.1);
+}
+
+/* Иконки для типа записи (увеличены) */
+.type-icon {
+    display: inline-block;
+    width: 32px;
+    height: 32px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+}
+.type-icon.late {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%23F59E0B' viewBox='0 0 24 24'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z'/%3E%3C/svg%3E");
+}
+.type-icon.absence {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%233B82F6' viewBox='0 0 24 24'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2V7zm0 8h2v2h-2v-2z'/%3E%3C/svg%3E");
+}
+
+/* Статус бейджи (более яркие) */
+.badge-pending {
+    background-color: var(--warning);
+    color: white;
+    box-shadow: 0 4px 8px rgba(245, 158, 11, 0.3);
+}
+.badge-approved {
+    background-color: var(--success);
+    color: white;
+    box-shadow: 0 4px 8px rgba(16, 185, 129, 0.3);
+}
+.badge-rejected {
+    background-color: var(--danger);
+    color: white;
+    box-shadow: 0 4px 8px rgba(239, 68, 68, 0.3);
+}
+
+/* Кнопки действий */
+.action-btn {
+    transition: all 0.2s ease;
+}
+.action-btn:hover {
+    transform: scale(1.15);
+    filter: brightness(1.2);
+}
+
+/* Текст */
+.text-accent { color: var(--accent); }
+.text-danger { color: var(--danger); }
+.hover\:text-accent\/80:hover { color: rgba(6, 182, 212, 0.8); }
+.hover\:text-danger\/80:hover { color: rgba(239, 68, 68, 0.8); }
+
+/* ---------- Loader (индикатор загрузки) ---------- */
+.loader {
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid var(--primary);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* ---------- Класс для скрытия элементов ---------- */
+.hidden {
+    display: none !important;
+}
+
+/* ---------- Дополнительные стили для модального окна (на случай отсутствия Tailwind) ---------- */
+#modal {
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 40;
+}
+
+#modal .modal-content {
+    background-color: white;
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    max-width: 28rem;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+}
