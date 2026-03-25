@@ -1,19 +1,21 @@
 :root {
-    --primary: #0d2d83;
-    --primary-hover: #1E40AF;
-    --primary-light: #3b82f6;
-    --primary-dark: #8b5cf6; 
-    --success: #10B981;
-    --danger: #EF4444;
-    --warning: #ecc377;
-    --info: #06B6D4;
-    --background: #F8FAFC;
-    --surface: #FFFFFF;
-    --text-primary: #1F2937;
-    --text-secondary: #6B7280;
-    --border: #E5E7EB;
-    --accent: #06B6D4;
+    --primary: #3c2f5c;
+    --primary-hover: #55467a;
+    --primary-light: #8a79b0;
+    --primary-dark: #2a1f42;
+    --success: #7a78ce;
+    --danger: #b3475c;
+    --warning: #3ad8be;
+    --info: #5f7f8f;
+    --background: #faf9fe;
+    --surface: #ffffff;
+    --text-primary: #2d2a3e;
+    --text-secondary: #6a6380;
+    --border: #e9e6f5;
+    --accent: #8a6bb5;
 }
+
+
 
 body {
     font-family: 'Nunito Sans', sans-serif;
@@ -74,9 +76,41 @@ footer {
     display: inline-block;
     text-align: center;
 }
+
+.btn-primary-hover{
+    background: var(--primary-hover);
+    color: white;
+    padding: 0.75rem 1.5rem;
+    font-size: 1.125rem;
+    border-radius: 0.5rem;
+    position: relative;
+    overflow: hidden;
+    transition: background 0.3s ease;
+    border: 2px solid #f3f3f3;
+    cursor: pointer;
+    display: inline-block;
+    text-align: center;
+}
+
+.btn-primary-hover:hover{
+    background: var(--primary-light);
+    color: white;
+    padding: 0.75rem 1.5rem;
+    font-size: 1.125rem;
+    border-radius: 0.5rem;
+    position: relative;
+    overflow: hidden;
+    transition: background 0.3s ease;
+    border: none;
+    cursor: pointer;
+    display: inline-block;
+    text-align: center;
+}
+
 .btn-gradient:hover {
     background: var(--primary);
 }
+
 .btn-gradient::after {
     content: '';
     position: absolute;
@@ -105,6 +139,7 @@ footer {
     cursor: pointer;
     margin-bottom: 0.5rem;
 }
+
 .user-btn:hover {
     background-color: var(--warning); 
     transform: scale(1.02);
@@ -117,6 +152,7 @@ footer {
     border-radius: 1rem;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
+
 .section-card:hover {
     transform: scale(1.02);
     box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.3);
@@ -140,6 +176,7 @@ footer {
 .header-dark a, .header-dark span {
     color: white;
 }
+
 .header-dark a:hover {
     color: var(--accent);
 }
@@ -149,6 +186,7 @@ footer {
     background-color: var(--primary-hover);
     color: white;
 }
+
 .footer-dark a {
     color: white;
     text-decoration: none;
