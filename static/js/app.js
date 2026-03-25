@@ -747,7 +747,7 @@ function updateUserInfo() {
         `;
     } else {
         userInfoEl.innerHTML = `
-            <button onclick="window.loginPage()" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded text-white">Войти</button>
+            <button onclick="window.loginPage()" class="btn-primary-hover hover:bg-blue-700 px-4 py-2 rounded text-white">Войти</button>
         `;
     }
 }
