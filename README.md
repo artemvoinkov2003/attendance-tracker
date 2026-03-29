@@ -84,18 +84,20 @@ go run cmd/app/main.go
 
 ## 🔧 Структура проекта
 
+```text
 attendance-tracker/
-├── cmd/app/main.go # Точка входа
+├── cmd/app/main.go            # Точка входа
 ├── internal/
-│ ├── db/ # Подключение к БД
-│ └── models/ # Модели и работа с БД
-├── migrations/ # SQL-миграции
+│   ├── db/                    # Подключение к БД
+│   └── models/                # Модели и работа с БД
+├── migrations/                # SQL-миграции
 ├── static/
-│ ├── css/ # Стили
-│ └── js/ # Клиентская логика (SPA)
-├── templates/ # Единственный HTML-шаблон (base.html)
+│   ├── css/                   # Стили
+│   └── js/                    # Клиентская логика (SPA)
+├── templates/                 # Единственный HTML-шаблон (base.html)
 ├── .env.example
 ├── go.mod
 ├── README.md
 ├── CHECKLIST.md
 └── api-examples.http
+```
