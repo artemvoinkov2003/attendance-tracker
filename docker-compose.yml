@@ -3,6 +3,7 @@ version: '3.8'
 services:
   db:
     image: postgres:16-alpine
+    container_name: attendance_db
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: yourpassword
@@ -10,12 +11,23 @@ services:
     ports:
       - "5432:5432"
     volumes:
+      # Персистентное хранилище данных PostgreSQL
       - postgres_data:/var/lib/postgresql/data
+      # Скрипт инициализации БД (создание таблиц, начальных пользователей)
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
 
   app:
     build: .
+    container_name: attendance_app
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     environment:
       DB_HOST: db
       DB_PORT: 5432
@@ -26,9 +38,10 @@ services:
     ports:
       - "8080:8080"
     volumes:
+      # Монтируем папки с шаблонами и статикой для удобства разработки (опционально)
       - ./templates:/root/templates
       - ./static:/root/static
-    command: ["./main"]
+    restart: unless-stopped
 
 volumes:
   postgres_data:
