@@ -3,49 +3,34 @@ let currentUser = null;
 let users = [];
 let currentPage = 'index';
 
-// Элементы DOM
+// DOM элементы
 const appEl = document.getElementById('app');
 const navEl = document.getElementById('main-nav');
 const userInfoEl = document.getElementById('user-info');
 let loaderEl = document.getElementById('loader');
 let modalEl = document.getElementById('modal');
 
-// Если элементов нет в base.html, создадим их
+// Создаём элементы, если их нет (на всякий случай)
 if (!loaderEl) {
     loaderEl = document.createElement('div');
     loaderEl.id = 'loader';
-    loaderEl.className = 'hidden fixed top-0 left-0 w-full h-full bg-black/50 flex items-center justify-center z-50';
+    loaderEl.className = 'hidden fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50';
     loaderEl.innerHTML = '<div class="loader"></div>';
     document.body.appendChild(loaderEl);
 }
 if (!modalEl) {
     modalEl = document.createElement('div');
     modalEl.id = 'modal';
-    modalEl.className = 'hidden fixed inset-0 bg-black/50 flex items-center justify-center z-40';
+    modalEl.className = 'hidden fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-40';
     modalEl.innerHTML = `
-        <div class="bg-white rounded-lg p-6 max-w-md w-full">
-            <h2 id="modal-title" class="text-2xl font-bold mb-4">Новая запись</h2>
+        <div class="bg-white rounded-xl shadow-xl p-6 max-w-md w-full">
+            <h2 id="modal-title" class="text-2xl font-bold text-gray-800 mb-4">Новая запись</h2>
             <form id="modal-form">
                 <input type="hidden" id="record-id">
-                <div class="mb-4">
-                    <label class="block text-sm font-medium mb-1">Тип</label>
-                    <select id="type" required class="w-full border rounded px-3 py-2">
-                        <option value="late">Опоздание</option>
-                        <option value="absence">Отсутствие</option>
-                    </select>
-                </div>
-                <div class="mb-4">
-                    <label class="block text-sm font-medium mb-1">Дата</label>
-                    <input type="date" id="date" required class="w-full border rounded px-3 py-2">
-                </div>
-                <div class="mb-4">
-                    <label class="block text-sm font-medium mb-1">Причина</label>
-                    <textarea id="reason" required rows="3" class="w-full border rounded px-3 py-2"></textarea>
-                </div>
-                <div class="flex justify-end space-x-2">
-                    <button type="button" id="modal-cancel" class="px-4 py-2 bg-gray-300 rounded">Отмена</button>
-                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded">Сохранить</button>
-                </div>
+                <div class="mb-4"><label class="block text-sm font-medium text-gray-700 mb-1">Тип</label><select id="type" required class="w-full border border-gray-300 rounded-lg px-3 py-2"><option value="late">Опоздание</option><option value="absence">Отсутствие</option></select></div>
+                <div class="mb-4"><label class="block text-sm font-medium text-gray-700 mb-1">Дата</label><input type="date" id="date" required class="w-full border border-gray-300 rounded-lg px-3 py-2"></div>
+                <div class="mb-4"><label class="block text-sm font-medium text-gray-700 mb-1">Причина</label><textarea id="reason" required rows="3" class="w-full border border-gray-300 rounded-lg px-3 py-2"></textarea></div>
+                <div class="flex justify-end space-x-3"><button type="button" id="modal-cancel" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">Отмена</button><button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">Сохранить</button></div>
             </form>
         </div>
     `;
@@ -60,157 +45,101 @@ const dateInput = document.getElementById('date');
 const reasonInput = document.getElementById('reason');
 const modalCancel = document.getElementById('modal-cancel');
 
-// ---------- Вспомогательные функции ----------
+// ---------- Helpers ----------
 async function apiFetch(endpoint, options = {}) {
     const url = endpoint.startsWith('http') ? endpoint : `${API_BASE}${endpoint}`;
-    const headers = {
-        'Content-Type': 'application/json',
-        ...options.headers,
-    };
+    const headers = { 'Content-Type': 'application/json', ...options.headers };
     const userId = localStorage.getItem('userId');
-    if (userId) {
-        headers['X-User-Id'] = userId;
-    }
+    if (userId) headers['X-User-Id'] = userId;
     try {
         const res = await fetch(url, { ...options, headers });
         let data;
         const contentType = res.headers.get('content-type');
-        if (contentType && contentType.includes('application/json')) {
-            data = await res.json();
-        } else {
-            data = await res.text();
-        }
-        if (!res.ok) {
-            const message = data.error || data || res.statusText;
-            throw new Error(message);
-        }
+        if (contentType?.includes('application/json')) data = await res.json();
+        else data = await res.text();
+        if (!res.ok) throw new Error(data.error || data || res.statusText);
         return data;
-    } catch (err) {
-        throw err;
-    }
+    } catch (err) { throw err; }
 }
 
-function showLoader() {
-    loaderEl.classList.remove('hidden');
-}
-function hideLoader() {
-    loaderEl.classList.add('hidden');
-}
-
-function showError(message) {
-    alert(message);
-}
+function showLoader() { loaderEl?.classList.remove('hidden'); }
+function hideLoader() { loaderEl?.classList.add('hidden'); }
+function showError(msg) { alert(msg); }
 
 function validateRecordForm({ type, date, reason }) {
-    if (!type || !date || !reason) {
-        return { valid: false, error: 'Все поля обязательны' };
-    }
-    const today = new Date().toISOString().split('T')[0];
-    if (date > today) {
-        return { valid: false, error: 'Дата не может быть в будущем' };
-    }
+    if (!type || !date || !reason) return { valid: false, error: 'Все поля обязательны' };
+    if (date > new Date().toISOString().split('T')[0]) return { valid: false, error: 'Дата не может быть в будущем' };
     return { valid: true };
 }
 
 function formatDate(dateStr) {
-    const d = new Date(dateStr);
-    return d.toLocaleDateString('ru-RU');
+    return new Date(dateStr).toLocaleDateString('ru-RU');
 }
 
-function getStatusBadge(status) {
-    const colors = {
-        pending: 'bg-yellow-500 text-white',
-        approved: 'bg-green-500 text-white',
-        rejected: 'bg-red-500 text-white',
-    };
-    const labels = {
-        pending: 'На рассмотрении',
-        approved: 'Подтверждено',
-        rejected: 'Отклонено',
-    };
-    return `<span class="px-2 py-1 rounded-full text-xs ${colors[status] || 'bg-gray-500'}">${labels[status] || status}</span>`;
-}
-
-// ---------- Рендеринг страниц ----------
+// ---------- Рендер страниц ----------
 function renderIndex() {
     appEl.innerHTML = `
-        <section class="section-card bg-primary-light text-white mb-8 hover-shadow-xl">
-            <div class="text-center py-12">
-                <h1 class="text-5xl font-bold mb-4">Добро пожаловать в Attendance Tracker</h1>
-                <p class="text-2xl mb-8">Система учёта опозданий и отсутствий сотрудников</p>
-                ${!currentUser ? '<button onclick="window.loginPage()" class="btn-gradient text-white text-xl">Войти</button>' : ''}
-            </div>
-        </section>
-        <section id="about" class="section-card bg-primary-light text-white mb-8 hover-shadow-xl">
-            <div class="py-12 px-6">
-                <h2 class="text-4xl font-bold mb-6 text-center">О нас</h2>
-                <p class="text-xl leading-relaxed max-w-3xl mx-auto text-center">
-                    Attendance Tracker — это система для учёта опозданий и отсутствий сотрудников, разработанная для повышения дисциплины и прозрачности в коллективе. Мы стремимся сделать процесс учёта простым и удобным как для сотрудников, так и для администраторов.
-                </p>
-            </div>
-        </section>
-        <section id="contacts" class="section-card bg-primary-light text-white mb-8 hover-shadow-xl">
-            <div class="py-12 px-6">
-                <h2 class="text-4xl font-bold mb-8 text-center">Контакты</h2>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto text-center">
-                    <div>
-                        <i class="fas fa-envelope text-5xl mb-4"></i>
-                        <h3 class="text-2xl font-bold mb-2">Email</h3>
-                        <p class="text-xl"><a href="mailto:support@attendancetracker.ru" class="hover:underline">support@attendancetracker.ru</a></p>
-                    </div>
-                    <div>
-                        <i class="fas fa-phone text-5xl mb-4"></i>
-                        <h3 class="text-2xl font-bold mb-2">Телефон</h3>
-                        <p class="text-xl">+7 (123) 456-78-90</p>
-                    </div>
-                    <div>
-                        <i class="fas fa-map-marker-alt text-5xl mb-4"></i>
-                        <h3 class="text-2xl font-bold mb-2">Адрес</h3>
-                        <p class="text-xl">г. Москва, ул. Программистов, д. 1</p>
-                    </div>
+        <div class="bg-white rounded-xl shadow-md p-8 text-center mb-8">
+            <h1 class="text-4xl font-bold text-gray-900 mb-3">Добро пожаловать в Attendance Tracker</h1>
+            <p class="text-gray-700 text-lg mb-6">Система учёта опозданий и отсутствий сотрудников</p>
+            ${!currentUser ? '<button onclick="window.loginPage()" class="btn-primary text-white">Войти</button>' : ''}
+        </div>
+        <div class="bg-white rounded-xl shadow-md p-6 mb-8">
+            <h2 class="text-2xl font-bold text-gray-900 mb-3">О нас</h2>
+            <p class="text-gray-800">Attendance Tracker — современная система для повышения дисциплины и прозрачности учёта рабочего времени.</p>
+        </div>
+        <div class="bg-white rounded-xl shadow-md p-6">
+            <h2 class="text-2xl font-bold text-gray-900 mb-6 text-center">Контакты</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+                <div>
+                    <i class="fas fa-envelope text-3xl text-primary mb-2"></i>
+                    <p class="font-semibold text-gray-900">support@attendancetracker.ru</p>
+                </div>
+                <div>
+                    <i class="fas fa-phone text-3xl text-primary mb-2"></i>
+                    <p class="font-semibold text-gray-900">+7 (123) 456-78-90</p>
+                </div>
+                <div>
+                    <i class="fas fa-map-marker-alt text-3xl text-primary mb-2"></i>
+                    <p class="font-semibold text-gray-900">Москва, ул. Программистов</p>
                 </div>
             </div>
-        </section>
+        </div>
     `;
 }
 
 function renderLogin() {
     appEl.innerHTML = `
-        <div class="max-w-md mx-auto bg-primary-hover p-10 rounded-2xl shadow-2xl hover-shadow-xl transition-all duration-300">
-            <h1 class="text-4xl font-bold mb-8 text-center text-white">Вход в систему</h1>
-            <p class="text-white text-xl mb-6 text-center">Выберите ваше имя из списка:</p>
-            <div class="space-y-3" id="user-list"></div>
-            <div class="mt-8 text-center text-sm text-white">
-                Демо-режим: выберите пользователя для входа
-            </div>
+        <div class="max-w-md mx-auto bg-white rounded-xl shadow-md p-8">
+            <h1 class="text-2xl font-bold text-center text-gray-800 mb-6">Вход в систему</h1>
+            <p class="text-gray-600 text-center mb-6">Выберите сотрудника</p>
+            <div id="user-list" class="space-y-3"></div>
         </div>
     `;
-    const userList = document.getElementById('user-list');
+    const list = document.getElementById('user-list');
+    list.innerHTML = '';
     users.forEach(user => {
         const btn = document.createElement('button');
-        btn.className = 'user-btn text-white text-xl py-3 px-4';
-        btn.textContent = user.name;
+        btn.className = 'w-full text-left px-4 py-3 bg-gray-50 hover:bg-gray-100 rounded-lg border border-gray-200 transition flex items-center justify-between';
+        btn.innerHTML = `<span class="font-medium">${user.name}</span><span class="text-xs text-gray-500">${user.role === 'admin' ? 'админ' : 'сотрудник'}</span>`;
         btn.onclick = () => login(user.id);
-        userList.appendChild(btn);
+        list.appendChild(btn);
     });
 }
 
 async function renderMyRecords() {
     appEl.innerHTML = `
-        <section>
-            <div class="flex justify-between items-center mb-8">
-                <h1 class="text-3xl font-bold text-primary">Мои записи</h1>
-                <button id="create-record-btn" class="btn-gradient-alt text-white px-6 py-3 rounded-lg flex items-center gap-2 transition-all duration-300 hover:scale-105 hover:shadow-xl" style="text-shadow: 0 0 8px rgba(255,255,255,0.5);">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
-                    </svg>
+        <div>
+            <div class="flex justify-between items-center mb-6">
+                <h1 class="text-2xl font-bold text-gray-800">Мои записи</h1>
+                <button id="create-record-btn" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                     Новая запись
                 </button>
             </div>
-
             <div id="records-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
-            <div id="empty-records" class="bg-gradient-to-r from-primary-light to-primary text-white p-12 rounded-2xl text-center text-2xl font-bold shadow-xl hidden">На данный момент записей нет.</div>
-        </section>
+            <div id="empty-records" class="bg-white rounded-xl shadow-md p-12 text-center text-gray-500 hidden">На данный момент записей нет.</div>
+        </div>
     `;
     document.getElementById('create-record-btn').onclick = () => renderRecordForm();
     await loadMyRecordsData();
@@ -220,142 +149,64 @@ async function loadMyRecordsData() {
     showLoader();
     const container = document.getElementById('records-container');
     const empty = document.getElementById('empty-records');
-    if (!container || !empty) {
-        showError('Ошибка интерфейса');
-        hideLoader();
-        return;
-    }
+    if (!container || !empty) { hideLoader(); return; }
     try {
         const records = await apiFetch('/attendance-records/my');
-        if (!Array.isArray(records)) {
-            console.warn('Ответ сервера не массив, считаем пустым результатом:', records);
-            empty.classList.remove('hidden');
-            container.innerHTML = '';
-            return;
-        }
-        if (!records.length) {
+        if (!Array.isArray(records) || records.length === 0) {
             empty.classList.remove('hidden');
             container.innerHTML = '';
             return;
         }
         empty.classList.add('hidden');
         container.innerHTML = records.map(record => `
-            <div class="record-card rounded-xl p-6 bg-primary-dark shadow-custom hover:shadow-2xl transition-all duration-300 flex flex-col relative overflow-hidden border-2 border-transparent hover:border-primary/20" data-type="${record.type}">
-                <!-- Цветная полоса сверху -->
-                <div class="absolute top-0 left-0 w-full h-2" style="background: ${record.type === 'late' ? 'linear-gradient(90deg, #F59E0B, #EF4444)' : 'linear-gradient(90deg, #3B82F6, #1E40AF)'};"></div>
-
-                <!-- Иконка и тип записи -->
-                <div class="flex items-center mb-4 mt-2">
-                    <span class="type-icon ${record.type === 'late' ? 'late' : 'absence'} mr-3"></span>
-                    <span class="text-2xl font-bold ${record.type === 'late' ? 'text-orange-500' : 'text-blue-600'}">
+            <div class="record-card bg-white rounded-xl shadow-md p-5 hover:shadow-lg transition" data-type="${record.type}">
+                <div class="flex items-center gap-2 mb-3">
+                    <span class="type-icon ${record.type === 'late' ? 'late' : 'absence'}"></span>
+                    <span class="font-bold text-lg ${record.type === 'late' ? 'text-amber-600' : 'text-indigo-600'}">
                         ${record.type === 'late' ? 'Опоздание' : 'Отсутствие'}
                     </span>
                 </div>
-
-                <!-- Дата -->
-                <div class="mb-3">
-                    <span class="text-sm uppercase tracking-wider text-secondary font-semibold">Дата</span>
-                    <p class="text-xl font-medium text-text-primary">${formatDate(record.date)}</p>
-                </div>
-
-                <!-- Причина -->
-                <div class="mb-3">
-                    <span class="text-sm uppercase tracking-wider text-secondary font-semibold">Причина</span>
-                    <p class="text-lg text-text-primary">${record.reason}</p>
-                </div>
-
-                <!-- Статус -->
-                <div class="mb-4">
-                    <span class="text-sm uppercase tracking-wider text-primary font-semibold">Статус</span>
-                    <div class="mt-1">
-                        <span class="px-4 py-2 rounded-full text-sm font-bold inline-block shadow-md
-                            ${record.status === 'pending' ? 'bg-warning text-primary' : record.status === 'approved' ? 'bg-success text-primary' : 'bg-danger text-primary'}">
-                            ${record.status === 'pending' ? 'На рассмотрении' : record.status === 'approved' ? 'Подтверждено' : 'Отклонено'}
-                        </span>
-                    </div>
-                </div>
-
-                <!-- Действия -->
+                <div class="mb-2"><div class="text-xs text-gray-500 uppercase">Дата</div><p class="font-medium">${formatDate(record.date)}</p></div>
+                <div class="mb-3"><div class="text-xs text-gray-500 uppercase">Причина</div><p class="text-gray-700">${escapeHtml(record.reason)}</p></div>
+                <div class="mb-4"><div class="text-xs text-gray-500 uppercase">Статус</div><span class="badge-${record.status}">${record.status === 'pending' ? 'На рассмотрении' : record.status === 'approved' ? 'Подтверждено' : 'Отклонено'}</span></div>
                 ${record.status === 'pending' ? `
-                    <div class="mt-auto pt-4 flex justify-end space-x-3 border-t border-gray-200">
-                        <button onclick="window.editRecord(${record.id})" class="text-accent hover:text-accent/80 text-2xl transition transform hover:scale-110" title="Редактировать">✎</button>
-                        <button onclick="window.deleteRecord(${record.id})" class="text-danger hover:text-danger/80 text-2xl transition transform hover:scale-110" title="Удалить">🗑</button>
+                    <div class="flex justify-end gap-3 pt-3 border-t border-gray-100">
+                        <button onclick="window.editRecord(${record.id})" class="text-gray-500 hover:text-indigo-600 transition" title="Редактировать">✎</button>
+                        <button onclick="window.deleteRecord(${record.id})" class="text-gray-500 hover:text-red-600 transition" title="Удалить">🗑</button>
                     </div>
                 ` : ''}
             </div>
         `).join('');
     } catch (err) {
         showError('Ошибка загрузки записей: ' + err.message);
-    } finally {
-        hideLoader();
-    }
+    } finally { hideLoader(); }
 }
 
 async function renderAdminRecords() {
     appEl.innerHTML = `
-        <div class="record-card border-2 border-primary rounded-xl p-12 bg-primary-dark shadow-custom hover-shadow-xl">
-            <section>
-                <h1 class="text-3xl font-bold mb-8">Модерация записей</h1>
-
-                <!-- Форма фильтрации -->
-                <div class="bg-surface p-6 rounded-xl shadow-custom mb-8">
-                    <form id="filter-form" class="grid grid-cols-1 md:grid-cols-5 gap-6">
-                        <div>
-                            <label for="filter-user" class="block text-lg font-medium text-secondary mb-2">Сотрудник</label>
-                            <select id="filter-user" name="user_id" class="w-full bg-background border-2 border-border rounded-lg px-4 py-3 text-text-primary focus:border-primary focus:ring-2 focus:ring-primary/30 transition">
-                                <option value="">Все</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="filter-type" class="block text-lg font-medium text-secondary mb-2">Тип</label>
-                            <select name="type" class="w-full bg-background border-2 border-border rounded-lg px-4 py-3 text-text-primary focus:border-primary focus:ring-2 focus:ring-primary/30 transition">
-                                <option value="">Все</option>
-                                <option value="late">Опоздание</option>
-                                <option value="absence">Отсутствие</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="filter-status" class="block text-lg font-medium text-secondary mb-2">Статус</label>
-                            <select name="status" class="w-full bg-background border-2 border-border rounded-lg px-4 py-3 text-text-primary focus:border-primary focus:ring-2 focus:ring-primary/30 transition">
-                                <option value="">Все</option>
-                                <option value="pending">На рассмотрении</option>
-                                <option value="approved">Подтверждено</option>
-                                <option value="rejected">Отклонено</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="filter-from" class="block text-lg font-medium text-secondary mb-2">Дата с</label>
-                            <input type="date" name="from" class="w-full bg-background border-2 border-border rounded-lg px-4 py-3 text-text-primary focus:border-primary focus:ring-2 focus:ring-primary/30 transition">
-                        </div>
-                        <div>
-                            <label for="filter-to" class="block text-lg font-medium text-secondary mb-2">Дата по</label>
-                            <input type="date" name="to" class="w-full bg-background border-2 border-border rounded-lg px-4 py-3 text-text-primary focus:border-primary focus:ring-2 focus:ring-primary/30 transition">
-                        </div>
-                        <div class="md:col-span-5 flex justify-end space-x-4">
-                            <button type="button" id="reset-filters" class="btn-gradient-alt">Сбросить</button>
-                            <button type="submit" class="btn-gradient">Применить</button>
-                        </div>
-                    </form>
-                </div>
-
-                <!-- Сетка карточек -->
-                <div id="admin-records-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
-                <div id="admin-empty-records" class="col-span-full bg-primary-light text-white text-center py-12 rounded-xl shadow-custom hidden">
-                    <p class="text-2xl">Нет записей по заданным фильтрам.</p>
-                </div>
-            </section>
+        <div>
+            <h1 class="text-2xl font-bold text-gray-800 mb-6">Модерация записей</h1>
+            <div class="bg-white rounded-xl shadow-md p-6 mb-8">
+                <form id="filter-form" class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                    <div><label class="block text-sm font-medium text-gray-700 mb-1">Сотрудник</label><select id="filter-user" name="user_id" class="w-full border border-gray-300 rounded-lg px-3 py-2"></select></div>
+                    <div><label class="block text-sm font-medium text-gray-700 mb-1">Тип</label><select name="type" class="w-full border border-gray-300 rounded-lg px-3 py-2"><option value="">Все</option><option value="late">Опоздание</option><option value="absence">Отсутствие</option></select></div>
+                    <div><label class="block text-sm font-medium text-gray-700 mb-1">Статус</label><select name="status" class="w-full border border-gray-300 rounded-lg px-3 py-2"><option value="">Все</option><option value="pending">На рассмотрении</option><option value="approved">Подтверждено</option><option value="rejected">Отклонено</option></select></div>
+                    <div><label class="block text-sm font-medium text-gray-700 mb-1">Дата с</label><input type="date" name="from" class="w-full border border-gray-300 rounded-lg px-3 py-2"></div>
+                    <div><label class="block text-sm font-medium text-gray-700 mb-1">Дата по</label><input type="date" name="to" class="w-full border border-gray-300 rounded-lg px-3 py-2"></div>
+                    <div class="md:col-span-5 flex justify-end gap-3">
+                        <button type="button" id="reset-filters" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">Сбросить</button>
+                        <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">Применить</button>
+                    </div>
+                </form>
+            </div>
+            <div id="admin-records-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+            <div id="admin-empty-records" class="bg-white rounded-xl shadow-md p-12 text-center text-gray-500 hidden">Нет записей по заданным фильтрам.</div>
         </div>
     `;
     const userSelect = document.getElementById('filter-user');
-    userSelect.innerHTML = '<option value="">Все</option>' + users.map(u => `<option value="${u.id}">${u.name}</option>`).join('');
-    document.getElementById('filter-form').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        await loadAdminRecordsData();
-    });
-    document.getElementById('reset-filters').addEventListener('click', () => {
-        document.getElementById('filter-form').reset();
-        loadAdminRecordsData();
-    });
+    userSelect.innerHTML = '<option value="">Все</option>' + users.map(u => `<option value="${u.id}">${escapeHtml(u.name)}</option>`).join('');
+    document.getElementById('filter-form').addEventListener('submit', async e => { e.preventDefault(); await loadAdminRecordsData(); });
+    document.getElementById('reset-filters').addEventListener('click', () => { document.getElementById('filter-form').reset(); loadAdminRecordsData(); });
     await loadAdminRecordsData();
 }
 
@@ -363,29 +214,13 @@ async function loadAdminRecordsData() {
     showLoader();
     try {
         const form = document.getElementById('filter-form');
-        if (!form) {
-            showError('Форма фильтрации не найдена');
-            return;
-        }
-        const formData = new FormData(form);
-        const params = new URLSearchParams(formData).toString();
+        if (!form) return;
+        const params = new URLSearchParams(new FormData(form)).toString();
         const records = await apiFetch('/attendance-records?' + params);
         const container = document.getElementById('admin-records-container');
         const empty = document.getElementById('admin-empty-records');
-        
-        if (!container || !empty) {
-            showError('Ошибка интерфейса');
-            return;
-        }
-
-        if (!Array.isArray(records)) {
-            console.warn('Ответ сервера не массив, считаем пустым результатом:', records);
-            empty.classList.remove('hidden');
-            container.innerHTML = '';
-            return;
-        }
-
-        if (!records.length) {
+        if (!container || !empty) return;
+        if (!Array.isArray(records) || records.length === 0) {
             empty.classList.remove('hidden');
             container.innerHTML = '';
             return;
@@ -393,90 +228,50 @@ async function loadAdminRecordsData() {
         empty.classList.add('hidden');
         const userMap = Object.fromEntries(users.map(u => [u.id, u.name]));
         container.innerHTML = records.map(record => `
-            <div class="record-card border-2 border-primary rounded-xl p-5 bg-primary-dark shadow-custom hover-shadow-xl">
-                <div class="flex justify-between items-start mb-3">
-                    <span class="text-sm font-semibold text-text-primary">${formatDate(record.date)}</span>
-                    <span class="px-3 py-1 rounded-full text-xs font-bold 
-                        ${record.status === 'pending' ? 'badge-pending' : record.status === 'approved' ? 'badge-approved' : 'badge-rejected'}">
-                        ${record.status === 'pending' ? 'На рассмотрении' : record.status === 'approved' ? 'Подтверждено' : 'Отклонено'}
-                    </span>
+            <div class="bg-white rounded-xl shadow-md p-5 hover:shadow-lg transition">
+                <div class="flex justify-between items-start mb-2">
+                    <span class="text-sm font-medium text-gray-500">${formatDate(record.date)}</span>
+                    <span class="badge-${record.status}">${record.status === 'pending' ? 'На рассмотрении' : record.status === 'approved' ? 'Подтверждено' : 'Отклонено'}</span>
                 </div>
-                <div class="mb-2">
-                    <span class="text-lg font-bold text-primary">${record.type === 'late' ? 'Опоздание' : 'Отсутствие'}</span>
-                </div>
-                <div class="mb-3">
-                    <p class="text-text-primary"><span class="font-semibold">Сотрудник:</span> ${userMap[record.user_id] || 'Неизвестно'}</p>
-                    <p class="text-text-primary mt-1"><span class="font-semibold">Причина:</span> ${record.reason}</p>
-                </div>
+                <div class="font-bold text-indigo-600 mb-2">${record.type === 'late' ? 'Опоздание' : 'Отсутствие'}</div>
+                <p class="text-sm text-gray-600"><span class="font-medium">Сотрудник:</span> ${escapeHtml(userMap[record.user_id] || 'Неизвестно')}</p>
+                <p class="text-sm text-gray-600 mt-1">${escapeHtml(record.reason)}</p>
                 ${record.status === 'pending' ? `
-                    <div class="flex justify-end space-x-3 mt-2 pt-2 border-t border-border">
-                        <button onclick="window.approveRecord(${record.id})" class="text-success hover:text-success/80 text-2xl transition" title="Подтвердить">✓</button>
-                        <button onclick="window.rejectRecord(${record.id})" class="text-danger hover:text-danger/80 text-2xl transition" title="Отклонить">✗</button>
+                    <div class="flex justify-end gap-3 mt-3 pt-2 border-t border-gray-100">
+                        <button onclick="window.approveRecord(${record.id})" class="text-green-600 hover:text-green-800 transition" title="Подтвердить">✓</button>
+                        <button onclick="window.rejectRecord(${record.id})" class="text-red-600 hover:text-red-800 transition" title="Отклонить">✗</button>
                     </div>
                 ` : ''}
             </div>
         `).join('');
     } catch (err) {
         showError('Ошибка загрузки: ' + err.message);
-    } finally {
-        hideLoader();
-    }
+    } finally { hideLoader(); }
 }
 
 async function renderAdminReports() {
     appEl.innerHTML = `
-        <section>
-            <h1 class="text-3xl font-bold mb-8">Отчёты</h1>
-
-            <!-- Форма фильтров -->
-            <div class="bg-surface p-6 rounded-xl shadow-custom mb-8">
-                <form id="report-filter-form" class="grid grid-cols-1 md:grid-cols-4 gap-6">
-                    <div>
-                        <label for="report-user" class="block text-lg font-medium text-secondary mb-2">Сотрудник</label>
-                        <select id="report-user" name="user_id" class="w-full bg-background border-2 border-border rounded-lg px-4 py-3 text-text-primary focus:border-primary focus:ring-2 focus:ring-primary/30 transition">
-                            <option value="">Все</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label for="report-from" class="block text-lg font-medium text-secondary mb-2">Период с</label>
-                        <input type="date" name="from" class="w-full bg-background border-2 border-border rounded-lg px-4 py-3 text-text-primary focus:border-primary focus:ring-2 focus:ring-primary/30 transition">
-                    </div>
-                    <div>
-                        <label for="report-to" class="block text-lg font-medium text-secondary mb-2">Период по</label>
-                        <input type="date" name="to" class="w-full bg-background border-2 border-border rounded-lg px-4 py-3 text-text-primary focus:border-primary focus:ring-2 focus:ring-primary/30 transition">
-                    </div>
-                    <div class="flex items-end">
-                        <button type="submit" class="btn-gradient w-full">Сформировать</button>
-                    </div>
+        <div>
+            <h1 class="text-2xl font-bold text-gray-800 mb-6">Отчёты</h1>
+            <div class="bg-white rounded-xl shadow-md p-6 mb-8">
+                <form id="report-filter-form" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div><label class="block text-sm font-medium text-gray-700 mb-1">Сотрудник</label><select id="report-user" name="user_id" class="w-full border border-gray-300 rounded-lg px-3 py-2"><option value="">Все</option></select></div>
+                    <div><label class="block text-sm font-medium text-gray-700 mb-1">Период с</label><input type="date" name="from" class="w-full border border-gray-300 rounded-lg px-3 py-2"></div>
+                    <div><label class="block text-sm font-medium text-gray-700 mb-1">Период по</label><input type="date" name="to" class="w-full border border-gray-300 rounded-lg px-3 py-2"></div>
+                    <div class="flex items-end"><button type="submit" class="w-full px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">Сформировать</button></div>
                 </form>
             </div>
-
-            <!-- Сводка -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div class="record-card border-2 border-primary rounded-xl p-6 bg-primary-dark shadow-custom hover-shadow-xl">
-                    <h3 class="text-lg text-secondary mb-2">Всего записей</h3>
-                    <p id="total-count" class="text-4xl font-bold">0</p>
-                </div>
-                <div class="record-card border-2 border-primary rounded-xl p-6 bg-primary-dark shadow-custom hover-shadow-xl">
-                    <h3 class="text-lg text-secondary mb-2">Опозданий</h3>
-                    <p id="late-count" class="text-4xl font-bold text-accent">0</p>
-                </div>
-                <div class="record-card border-2 border-primary rounded-xl p-6 bg-primary-dark shadow-custom hover-shadow-xl">
-                    <h3 class="text-lg text-secondary mb-2">Отсутствий</h3>
-                    <p id="absence-count" class="text-4xl font-bold text-primary">0</p>
-                </div>
+                <div class="bg-white rounded-xl shadow-md p-6 text-center"><h3 class="text-gray-500 text-sm">Всего записей</h3><p id="total-count" class="text-3xl font-bold text-gray-800">0</p></div>
+                <div class="bg-white rounded-xl shadow-md p-6 text-center"><h3 class="text-gray-500 text-sm">Опозданий</h3><p id="late-count" class="text-3xl font-bold text-amber-600">0</p></div>
+                <div class="bg-white rounded-xl shadow-md p-6 text-center"><h3 class="text-gray-500 text-sm">Отсутствий</h3><p id="absence-count" class="text-3xl font-bold text-indigo-600">0</p></div>
             </div>
-
-            <!-- Детальный список -->
             <div id="report-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
-        </section>
+        </div>
     `;
     const userSelect = document.getElementById('report-user');
-    userSelect.innerHTML = '<option value="">Все</option>' + users.map(u => `<option value="${u.id}">${u.name}</option>`).join('');
-    document.getElementById('report-filter-form').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        await loadReportData();
-    });
+    userSelect.innerHTML = '<option value="">Все</option>' + users.map(u => `<option value="${u.id}">${escapeHtml(u.name)}</option>`).join('');
+    document.getElementById('report-filter-form').addEventListener('submit', async e => { e.preventDefault(); await loadReportData(); });
     await loadReportData();
 }
 
@@ -484,71 +279,40 @@ async function loadReportData() {
     showLoader();
     try {
         const form = document.getElementById('report-filter-form');
-        const formData = new FormData(form);
-        const params = new URLSearchParams(formData).toString();
+        if (!form) return;
+        const params = new URLSearchParams(new FormData(form)).toString();
         const records = await apiFetch('/attendance-records?' + params);
-        
-        if (!Array.isArray(records)) {
-            console.warn('Ответ сервера не массив, считаем пустым результатом:', records);
-            document.getElementById('total-count').textContent = '0';
-            document.getElementById('late-count').textContent = '0';
-            document.getElementById('absence-count').textContent = '0';
-            const container = document.getElementById('report-container');
-            container.innerHTML = '<p class="text-center text-gray-500">Нет записей</p>';
-            return;
-        }
-
-        const total = records.length;
-        const late = records.filter(r => r.type === 'late').length;
-        const absence = records.filter(r => r.type === 'absence').length;
+        const total = Array.isArray(records) ? records.length : 0;
+        const late = Array.isArray(records) ? records.filter(r => r.type === 'late').length : 0;
+        const absence = total - late;
         document.getElementById('total-count').textContent = total;
         document.getElementById('late-count').textContent = late;
         document.getElementById('absence-count').textContent = absence;
-
-        const userMap = Object.fromEntries(users.map(u => [u.id, u.name]));
         const container = document.getElementById('report-container');
-        if (!records.length) {
-            container.innerHTML = '<p class="text-center text-gray-500">Нет записей</p>';
+        if (!Array.isArray(records) || records.length === 0) {
+            container.innerHTML = '<div class="col-span-full text-center text-gray-500 py-8">Нет записей</div>';
             return;
         }
+        const userMap = Object.fromEntries(users.map(u => [u.id, u.name]));
         container.innerHTML = records.map(record => `
-            <div class="record-card border-2 border-primary rounded-xl p-5 bg-primary-dark shadow-custom hover-shadow-xl">
-                <div class="flex justify-between items-start mb-3">
-                    <span class="text-sm font-semibold text-text-primary">${formatDate(record.date)}</span>
-                    <span class="px-3 py-1 rounded-full text-xs font-bold 
-                        ${record.status === 'pending' ? 'badge-pending' : record.status === 'approved' ? 'badge-approved' : 'badge-rejected'}">
-                        ${record.status === 'pending' ? 'На рассмотрении' : record.status === 'approved' ? 'Подтверждено' : 'Отклонено'}
-                    </span>
+            <div class="bg-white rounded-xl shadow-md p-5 hover:shadow-lg transition">
+                <div class="flex justify-between items-start mb-2">
+                    <span class="text-sm font-medium text-gray-500">${formatDate(record.date)}</span>
+                    <span class="badge-${record.status}">${record.status === 'pending' ? 'На рассмотрении' : record.status === 'approved' ? 'Подтверждено' : 'Отклонено'}</span>
                 </div>
-                <div class="mb-2">
-                    <span class="text-lg font-bold text-primary">${record.type === 'late' ? 'Опоздание' : 'Отсутствие'}</span>
-                </div>
-                <div class="mb-1">
-                    <p class="text-text-primary"><span class="font-semibold">Сотрудник:</span> ${userMap[record.user_id] || 'Неизвестно'}</p>
-                </div>
+                <div class="font-bold text-indigo-600 mb-2">${record.type === 'late' ? 'Опоздание' : 'Отсутствие'}</div>
+                <p class="text-sm text-gray-600"><span class="font-medium">Сотрудник:</span> ${escapeHtml(userMap[record.user_id] || 'Неизвестно')}</p>
             </div>
         `).join('');
     } catch (err) {
         showError('Ошибка загрузки отчёта: ' + err.message);
-    } finally {
-        hideLoader();
-    }
+    } finally { hideLoader(); }
 }
 
-// ---------- Модальное окно для создания/редактирования записи ----------
+// ---------- Модальное окно (без перекрашивания) ----------
 function renderRecordForm(recordId = null) {
     modalTitle.textContent = recordId ? 'Редактировать запись' : 'Новая запись';
     recordIdInput.value = recordId || '';
-    // Стилизуем модальное окно под старую форму
-    modalEl.querySelector('.bg-white').className = 'bg-primary-hover p-8 rounded-lg shadow-custom hover:shadow-2xl transition-all duration-300';
-    modalEl.querySelector('h2').className = 'text-2xl font-bold mb-6 text-white';
-    modalEl.querySelectorAll('label').forEach(l => l.className = 'block text-sm font-medium text-white mb-1');
-    modalEl.querySelectorAll('input, select, textarea').forEach(el => {
-        el.className = 'w-full bg-white border border-surface rounded-md px-3 py-2 text-text-primary focus:outline-none focus:ring-2 focus:ring-primary';
-    });
-    modalEl.querySelector('#modal-cancel').className = 'btn-gradient-alt text-white px-6 py-3 rounded-lg transition-all duration-300 hover:scale-105';
-    modalEl.querySelector('button[type="submit"]').className = 'btn-gradient text-white px-6 py-3 rounded-lg transition-all duration-300';
-
     if (recordId) {
         showLoader();
         apiFetch('/attendance-records/my')
@@ -566,62 +330,32 @@ function renderRecordForm(recordId = null) {
         typeInput.value = 'late';
         dateInput.value = '';
         reasonInput.value = '';
-        const today = new Date().toISOString().split('T')[0];
-        dateInput.max = today;
+        dateInput.max = new Date().toISOString().split('T')[0];
     }
     modalEl.classList.remove('hidden');
 }
 
 async function handleRecordSubmit(e) {
     e.preventDefault();
-    const data = {
-        type: typeInput.value,
-        date: dateInput.value,
-        reason: reasonInput.value,
-    };
+    const data = { type: typeInput.value, date: dateInput.value, reason: reasonInput.value };
     const validation = validateRecordForm(data);
-    if (!validation.valid) {
-        showError(validation.error);
-        return;
-    }
+    if (!validation.valid) { showError(validation.error); return; }
     const id = recordIdInput.value;
     showLoader();
     try {
-        if (id) {
-            await apiFetch(`/attendance-records/${id}`, {
-                method: 'PUT',
-                body: JSON.stringify(data),
-            });
-        } else {
-            await apiFetch('/attendance-records', {
-                method: 'POST',
-                body: JSON.stringify(data),
-            });
-        }
+        if (id) await apiFetch(`/attendance-records/${id}`, { method: 'PUT', body: JSON.stringify(data) });
+        else await apiFetch('/attendance-records', { method: 'POST', body: JSON.stringify(data) });
         closeModal();
-        if (currentPage === 'my-records') {
-            await loadMyRecordsData();
-        } else if (currentPage === 'admin-records') {
-            await loadAdminRecordsData();
-        }
-    } catch (err) {
-        showError('Ошибка сохранения: ' + err.message);
-    } finally {
-        hideLoader();
-    }
+        if (currentPage === 'my-records') await loadMyRecordsData();
+        else if (currentPage === 'admin-records') await loadAdminRecordsData();
+    } catch (err) { showError('Ошибка сохранения: ' + err.message); }
+    finally { hideLoader(); }
 }
 
 function closeModal() {
     modalEl.classList.add('hidden');
-    // Сбрасываем стили модалки на исходные (чтобы не мешать другим страницам)
-    modalEl.querySelector('.bg-primary-hover').className = 'bg-white rounded-lg p-6 max-w-md w-full';
-    modalEl.querySelector('h2').className = 'text-2xl font-bold mb-4';
-    modalEl.querySelectorAll('label').forEach(l => l.className = 'block text-sm font-medium mb-1');
-    modalEl.querySelectorAll('input, select, textarea').forEach(el => {
-        el.className = 'w-full border rounded px-3 py-2';
-    });
-    modalEl.querySelector('#modal-cancel').className = 'px-4 py-2 bg-gray-300 rounded';
-    modalEl.querySelector('button[type="submit"]').className = 'px-4 py-2 bg-blue-600 text-white rounded';
+    modalForm.reset();
+    recordIdInput.value = '';
 }
 
 // ---------- Действия с записями ----------
@@ -631,11 +365,8 @@ async function deleteRecord(id) {
     try {
         await apiFetch(`/attendance-records/${id}`, { method: 'DELETE' });
         await loadMyRecordsData();
-    } catch (err) {
-        showError('Ошибка удаления: ' + err.message);
-    } finally {
-        hideLoader();
-    }
+    } catch (err) { showError('Ошибка удаления: ' + err.message); }
+    finally { hideLoader(); }
 }
 
 async function approveRecord(id) {
@@ -643,11 +374,8 @@ async function approveRecord(id) {
     try {
         await apiFetch(`/attendance-records/${id}/approve`, { method: 'POST' });
         await loadAdminRecordsData();
-    } catch (err) {
-        showError('Ошибка: ' + err.message);
-    } finally {
-        hideLoader();
-    }
+    } catch (err) { showError('Ошибка: ' + err.message); }
+    finally { hideLoader(); }
 }
 
 async function rejectRecord(id) {
@@ -655,14 +383,11 @@ async function rejectRecord(id) {
     try {
         await apiFetch(`/attendance-records/${id}/reject`, { method: 'POST' });
         await loadAdminRecordsData();
-    } catch (err) {
-        showError('Ошибка: ' + err.message);
-    } finally {
-        hideLoader();
-    }
+    } catch (err) { showError('Ошибка: ' + err.message); }
+    finally { hideLoader(); }
 }
 
-// ---------- Вход и выход ----------
+// ---------- Вход / выход ----------
 async function login(userId) {
     localStorage.setItem('userId', userId);
     await loadUser();
@@ -673,68 +398,37 @@ async function login(userId) {
 
 async function logout() {
     localStorage.removeItem('userId');
-    currentUser = null;    
+    currentUser = null;
     updateNavigation();
     updateUserInfo();
     changePage('index');
 }
 
-function loginPage() {
-    changePage('login');
-}
+function loginPage() { changePage('login'); }
 
 // ---------- Навигация ----------
 async function changePage(page) {
     currentPage = page;
     switch (page) {
-        case 'index':
-            renderIndex();
-            break;
-        case 'login':
-            renderLogin();
-            break;
-        case 'my-records':
-            await renderMyRecords();
-            break;
-        case 'admin-records':
-            await renderAdminRecords();
-            break;
-        case 'admin-reports':
-            await renderAdminReports();
-            break;
-        default:
-            if (!currentUser) {
-                renderIndex();
-            } else {
-                changePage(currentUser.role === 'admin' ? 'admin-records' : 'my-records');
-            }
+        case 'index': renderIndex(); break;
+        case 'login': renderLogin(); break;
+        case 'my-records': await renderMyRecords(); break;
+        case 'admin-records': await renderAdminRecords(); break;
+        case 'admin-reports': await renderAdminReports(); break;
+        default: currentUser ? changePage(currentUser.role === 'admin' ? 'admin-records' : 'my-records') : renderIndex();
     }
     updateActiveNavLink(page);
 }
 
 function updateNavigation() {
     if (!navEl) return;
-    if (!currentUser) {
-        navEl.innerHTML = '';
-        return;
-    }
-    let menuHtml = '';
-    if (currentUser.role === 'admin') {
-        menuHtml = `
-            <button class="nav-link hover:text-accent transition" data-page="admin-records">Модерация</button>
-            <button class="nav-link hover:text-accent transition" data-page="admin-reports">Отчёты</button>
-        `;
-    } else {
-        menuHtml = `
-            <button class="nav-link hover:text-accent transition" data-page="my-records">Мои записи</button>
-        `;
-    }
-    navEl.innerHTML = menuHtml;
+    if (!currentUser) { navEl.innerHTML = ''; return; }
+    navEl.innerHTML = currentUser.role === 'admin'
+        ? `<button class="nav-link text-gray-600 hover:text-indigo-600 transition" data-page="admin-records">Модерация</button>
+           <button class="nav-link text-gray-600 hover:text-indigo-600 transition" data-page="admin-reports">Отчёты</button>`
+        : `<button class="nav-link text-gray-600 hover:text-indigo-600 transition" data-page="my-records">Мои записи</button>`;
     document.querySelectorAll('.nav-link').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const page = e.target.dataset.page;
-            changePage(page);
-        });
+        btn.addEventListener('click', (e) => changePage(e.target.dataset.page));
     });
 }
 
@@ -742,33 +436,25 @@ function updateUserInfo() {
     if (!userInfoEl) return;
     if (currentUser) {
         userInfoEl.innerHTML = `
-            <span class="text-white">${currentUser.name} (${currentUser.role === 'admin' ? 'админ' : 'сотрудник'})</span>
-            <button onclick="window.logout()" class="ml-4 bg-red-600 hover:bg-red-700 px-3 py-1 rounded text-white">Выйти</button>
+            <span class="text-gray-700">${escapeHtml(currentUser.name)} (${currentUser.role === 'admin' ? 'админ' : 'сотрудник'})</span>
+            <button onclick="window.logout()" class="px-3 py-1 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition">Выйти</button>
         `;
     } else {
-        userInfoEl.innerHTML = `
-            <button onclick="window.loginPage()" class="btn-primary-hover hover:bg-blue-700 px-4 py-2 rounded text-white">Войти</button>
-        `;
+        userInfoEl.innerHTML = `<button onclick="window.loginPage()" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">Войти</button>`;
     }
 }
 
 function updateActiveNavLink(page) {
     document.querySelectorAll('.nav-link').forEach(btn => {
-        if (btn.dataset.page === page) {
-            btn.classList.add('text-accent');
-        } else {
-            btn.classList.remove('text-accent');
-        }
+        if (btn.dataset.page === page) btn.classList.add('text-indigo-600', 'font-medium');
+        else btn.classList.remove('text-indigo-600', 'font-medium');
     });
 }
 
-// ---------- Загрузка пользователя ----------
+// ---------- Загрузка пользователей ----------
 async function fetchUsers() {
-    try {
-        users = await apiFetch('/users');
-    } catch (err) {
-        showError('Не удалось загрузить список пользователей');
-    }
+    try { users = await apiFetch('/users'); }
+    catch (err) { showError('Не удалось загрузить список пользователей'); }
 }
 
 async function loadUser() {
@@ -779,36 +465,32 @@ async function loadUser() {
     return currentUser;
 }
 
-// ---------- Инициализация приложения ----------
+// ---------- Экранирование HTML ----------
+function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/[&<>]/g, function(m) {
+        if (m === '&') return '&amp;';
+        if (m === '<') return '&lt;';
+        if (m === '>') return '&gt;';
+        return m;
+    });
+}
+
+// ---------- Инициализация ----------
 async function initApp() {
     await fetchUsers();
     await loadUser();
-
-    // Обновляем информацию о пользователе в шапке
     updateUserInfo();
-
-    // Обработчик для логотипа (без перезагрузки)
     const logoLink = document.querySelector('header a[href="/"]');
-    if (logoLink) {
-        logoLink.addEventListener('click', (e) => {
-            e.preventDefault();
-            changePage('index');
-        });
-    }
-
+    if (logoLink) logoLink.addEventListener('click', (e) => { e.preventDefault(); changePage('index'); });
     updateNavigation();
-
-    if (!currentUser) {
-        await changePage('index');
-    } else {
-        await changePage(currentUser.role === 'admin' ? 'admin-records' : 'my-records');
-    }
-
+    if (!currentUser) await changePage('index');
+    else await changePage(currentUser.role === 'admin' ? 'admin-records' : 'my-records');
     modalForm.addEventListener('submit', handleRecordSubmit);
     modalCancel.addEventListener('click', closeModal);
 }
 
-// Экспортируем функции в window для доступа из onclick
+// Глобальные функции для onclick
 window.login = login;
 window.logout = logout;
 window.loginPage = loginPage;
@@ -817,5 +499,4 @@ window.deleteRecord = deleteRecord;
 window.approveRecord = approveRecord;
 window.rejectRecord = rejectRecord;
 
-// Запуск приложения
 document.addEventListener('DOMContentLoaded', initApp);
