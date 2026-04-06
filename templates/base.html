@@ -10,107 +10,100 @@
     <!-- Tailwind CSS -->
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <!-- Кастомные стили -->
-    <link rel="stylesheet" href="/static/css/style.css?v=2">
-    <!-- Font Awesome для иконок -->
+    <link rel="stylesheet" href="/static/css/style.css?v=3">
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <!-- Шрифт Nunito Sans (из base.html) -->
+    <!-- Шрифт Inter (современный) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
 </head>
-<body class="bg-background text-text-primary font-sans antialiased">
-    <!-- Шапка (как в base.html) -->
-    <header class="header-dark shadow-lg sticky top-0 z-10">
-        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
-            <a href="/" class="text-2xl font-bold text-white hover:text-accent transition-colors">
+<body class="bg-gray-50 text-gray-800 antialiased">
+    <!-- Шапка -->
+    <header class="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-10">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <a href="/" class="text-xl font-bold text-indigo-600 hover:text-indigo-700 transition">
                 Attendance Tracker
             </a>
-
-            <!-- Навигация будет заполняться через JS -->
-            <nav id="main-nav" class="hidden md:flex space-x-6 text-white"></nav>
-
-            <!-- Информация о пользователе и кнопка выхода (заполняется через JS) -->
+            <nav id="main-nav" class="hidden md:flex space-x-6 text-gray-600"></nav>
             <div id="user-info" class="flex items-center space-x-4"></div>
         </div>
     </header>
 
-    <!-- Основной контент приложения -->
     <main id="app" class="container mx-auto px-4 py-8"></main>
 
-    <!-- Подвал (как в base.html) -->
-    <footer class="footer-dark py-8">
+    <!-- Подвал -->
+    <footer class="bg-white border-t border-gray-200 py-6 mt-12">
         <div class="container mx-auto px-4">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 text-white">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 text-gray-500 text-sm">
                 <div>
-                    <h4 class="font-bold text-lg mb-3">Attendance Tracker</h4>
-                    <p class="text-sm opacity-90">Учёт опозданий и отсутствий для современного бизнеса.</p>
+                    <h4 class="font-semibold text-gray-700 mb-2">Attendance Tracker</h4>
+                    <p>Учёт опозданий и отсутствий</p>
                 </div>
                 <div>
-                    <h4 class="font-bold text-lg mb-3">Навигация</h4>
-                    <ul class="space-y-1 text-sm">
-                        <li><a href="/" class="hover:underline">Главная</a></li>
-                        <li><a href="#about" class="hover:underline">О нас</a></li>
-                        <li><a href="#contacts" class="hover:underline">Контакты</a></li>
+                    <h4 class="font-semibold text-gray-700 mb-2">Навигация</h4>
+                    <ul class="space-y-1">
+                        <li><a href="/" class="hover:text-indigo-600">Главная</a></li>
+                        <li><a href="#about" class="hover:text-indigo-600">О нас</a></li>
+                        <li><a href="#contacts" class="hover:text-indigo-600">Контакты</a></li>
                     </ul>
                 </div>
                 <div>
-                    <h4 class="font-bold text-lg mb-3">Контакты</h4>
-                    <ul class="space-y-1 text-sm">
+                    <h4 class="font-semibold text-gray-700 mb-2">Контакты</h4>
+                    <ul class="space-y-1">
                         <li><i class="fas fa-envelope mr-2"></i> support@attendancetracker.ru</li>
                         <li><i class="fas fa-phone mr-2"></i> +7 (123) 456-78-90</li>
-                        <li><i class="fas fa-map-marker-alt mr-2"></i> Москва, ул. Программистов, д. 1</li>
                     </ul>
                 </div>
                 <div>
-                    <h4 class="font-bold text-lg mb-3">Мы в соцсетях</h4>
-                    <div class="flex space-x-4">
-                        <a href="https://t.me/Art3moon_444" class="text-2xl hover:text-accent"><i class="fab fa-telegram"></i></a>
-                        <a href="https://vk.com/artem_voinkov" class="text-2xl hover:text-accent"><i class="fab fa-vk"></i></a>
-                        <a href="https://github.com/artemvoinkov2003" class="text-2xl hover:text-accent"><i class="fab fa-github"></i></a>
+                    <h4 class="font-semibold text-gray-700 mb-2">Соцсети</h4>
+                    <div class="flex space-x-3 text-gray-500">
+                        <a href="#" class="hover:text-indigo-600"><i class="fab fa-telegram text-xl"></i></a>
+                        <a href="#" class="hover:text-indigo-600"><i class="fab fa-vk text-xl"></i></a>
+                        <a href="#" class="hover:text-indigo-600"><i class="fab fa-github text-xl"></i></a>
                     </div>
                 </div>
             </div>
-            <div class="border-t border-white/20 mt-6 pt-4 text-center text-sm opacity-80">
+            <div class="border-t border-gray-100 mt-6 pt-4 text-center text-gray-400 text-xs">
                 &copy; 2026 Attendance Tracker. Все права защищены.
             </div>
         </div>
     </footer>
 
-    <!-- Модальное окно для создания/редактирования записей (скрыто по умолчанию) -->
-    <div id="modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-40">
-        <div class="bg-white rounded-lg p-6 max-w-md w-full">
-            <h2 id="modal-title" class="text-2xl font-bold mb-4">Новая запись</h2>
+    <!-- Модальное окно (светлое) -->
+    <div id="modal" class="hidden fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-40">
+        <div class="bg-white rounded-xl shadow-xl p-6 max-w-md w-full">
+            <h2 id="modal-title" class="text-2xl font-bold text-gray-800 mb-4">Новая запись</h2>
             <form id="modal-form">
                 <input type="hidden" id="record-id">
                 <div class="mb-4">
-                    <label class="block text-sm font-medium mb-1">Тип</label>
-                    <select id="type" required class="w-full border rounded px-3 py-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Тип</label>
+                    <select id="type" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500">
                         <option value="late">Опоздание</option>
                         <option value="absence">Отсутствие</option>
                     </select>
                 </div>
                 <div class="mb-4">
-                    <label class="block text-sm font-medium mb-1">Дата</label>
-                    <input type="date" id="date" required class="w-full border rounded px-3 py-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Дата</label>
+                    <input type="date" id="date" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500">
                 </div>
                 <div class="mb-4">
-                    <label class="block text-sm font-medium mb-1">Причина</label>
-                    <textarea id="reason" required rows="3" class="w-full border rounded px-3 py-2"></textarea>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Причина</label>
+                    <textarea id="reason" required rows="3" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500"></textarea>
                 </div>
-                <div class="flex justify-end space-x-2">
-                    <button type="button" id="modal-cancel" class="px-4 py-2 bg-gray-300 rounded">Отмена</button>
-                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded">Сохранить</button>
+                <div class="flex justify-end space-x-3">
+                    <button type="button" id="modal-cancel" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition">Отмена</button>
+                    <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">Сохранить</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Индикатор загрузки (скрыт по умолчанию) -->
-    <div id="loader" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <!-- Loader -->
+    <div id="loader" class="hidden fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
         <div class="loader"></div>
     </div>
 
-    <!-- Подключение основного скрипта -->
     <script src="/static/js/app.js"></script>
 </body>
 </html>
